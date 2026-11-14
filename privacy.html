@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Privacy Policy - Fire Dashboard</title>
+    <style>
+        body {
+            background: #111;
+            color: #eee;
+            font-family: Arial, sans-serif;
+            max-width: 750px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.7;
+        }
+        h1, h2 { color: #d6b58a; }
+        a { color: #d6b58a; }
+    </style>
+</head>
+<body>
+    <h1>Fire Dashboard Privacy Policy</h1>
+    <p>Last updated: November 14, 2026</p>
+
+    <h2>Overview</h2>
+    <p>
+        Fire Dashboard is a personal dashboard that displays information
+        such as calendar events and weather. Your privacy is important.
+    </p>
+
+    <h2>Google Account Information</h2>
+    <p>
+        If you choose to connect Google Calendar, the dashboard requests
+        read-only access to your primary Google Calendar events.
+    </p>
+    <p>
+        Calendar information is retrieved through a private server
+        operated using Cloudflare Workers. The server uses an access
+        token to retrieve events from Google and returns event information
+        to the dashboard.
+    </p>
+
+    <h2>Storage and Security</h2>
+    <p>
+        Google refresh tokens are stored in a restricted Cloudflare
+        Workers KV namespace. Temporary login sessions are also stored
+        there. The dashboard stores a session token in the browser's
+        local storage to maintain your login.
+    </p>
+    <p>
+        Reasonable measures are used to protect this information.
+        No internet service can guarantee absolute security.
+    </p>
+
+    <h2>Sharing</h2>
+    <p>
+        Google Calendar information is not intentionally sold, shared
+        with advertisers, or made publicly available. It is only used
+        to provide calendar functionality to the authorized user.
+    </p>
+
+    <h2>Data Retention and Deletion</h2>
+    <p>
+        The dashboard retains authentication information as needed
+        to provide its functionality. You can revoke the dashboard's
+        Google Account access through your Google Account security
+        settings. Stored authentication information can also be
+        deleted from the server.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+        For privacy questions, contact the project administrator
+        using the support email listed on the Google consent screen.
+    </p>
+
+    <p><a href="index.html">Return to Fire Dashboard</a></p>
+</body>
+</html>
