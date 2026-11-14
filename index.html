@@ -253,7 +253,7 @@
             setInterval(loadWeather, 30 * 60 * 1000);
         </script>
         <script src="https://accounts.google.com/gsi/client"></script>
-        <script>
+        <script> 
             var tokenClient;
 
             function connectCalendar() {
@@ -261,17 +261,17 @@
                     tokenClient = google.accounts.oauth2.initTokenClient({
                         client_id: "439850512639-apkqafjrv4tna2amnplcrka3b555s5n2.apps.googleusercontent.com",
                         scope: "https://www.googleapis.com/auth/calendar.events.readonly",
+
                         callback: function (response) {
-                            getCalendarEvents(response.access_token);
-                            console.log("Getting calendar events...");
-                            console.log("Google callback fired:", response);
-                            if (response.error) {
+                            if (response.error || !response.access_token) {
                                 document.getElementById("calendar-events").textContent =
                                     "Authorization failed. Please try again.";
                                 return;
                             }
 
-                            document.getElementById("connect-calendar").style.display = "none";
+                            document.getElementById("calendar-events").textContent =
+                                "Loading events...";
+
                             getCalendarEvents(response.access_token);
                         }
                     });
@@ -295,12 +295,15 @@
                     var container = document.getElementById("calendar-events");
 
                     if (request.status !== 200) {
-                        container.textContent = "Couldn't load calendar events.";
+                        container.textContent =
+                            "Couldn't load events. Error: " + request.status;
                         return;
                     }
 
                     var data = JSON.parse(request.responseText);
                     container.innerHTML = "";
+
+                    document.getElementById("connect-calendar").style.display = "none";
 
                     if (!data.items || data.items.length === 0) {
                         container.textContent = "No upcoming events.";
@@ -310,7 +313,18 @@
                     for (var i = 0; i < data.items.length; i++) {
                         var event = data.items[i];
                         var start = event.start.dateTime || event.start.date;
-                        var date = new Date(start);
+                        var date;
+
+                        if (event.start.dateTime) {
+                            date = new Date(start);
+                        } else {
+                            var parts = start.split("-");
+                            date = new Date(
+                                Number(parts[0]),
+                                Number(parts[1]) - 1,
+                                Number(parts[2])
+                            );
+                        }
 
                         var item = document.createElement("div");
                         item.className = "calendar-event";
@@ -334,13 +348,14 @@
                                 weekday: "short",
                                 month: "short",
                                 day: "numeric"
-                            });
+                            }) + " · All day";
                         }
 
                         item.appendChild(title);
                         item.appendChild(time);
                         container.appendChild(item);
                     }
+                };
 
                 request.onerror = function () {
                     document.getElementById("calendar-events").textContent =
@@ -348,9 +363,7 @@
                 };
 
                 request.send();
-                }
             }
-
         </script>
     </body>
 </html>
