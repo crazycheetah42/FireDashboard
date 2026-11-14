@@ -255,6 +255,32 @@
         <script src="https://accounts.google.com/gsi/client"></script>
         <script> 
             var tokenClient;
+            window.onload = function () {
+                setTimeout(function () {
+                    tokenClient = google.accounts.oauth2.initTokenClient({
+                        client_id: "439850512639-apkqafjrv4tna2amnplcrka3b555s5n2.apps.googleusercontent.com",
+                        scope: "https://www.googleapis.com/auth/calendar.events.readonly",
+
+                        callback: function (response) {
+                            if (response.error || !response.access_token) {
+                                document.getElementById("calendar-events").textContent =
+                                    "Please connect your calendar.";
+                                return;
+                            }
+
+                            document.getElementById("calendar-events").textContent =
+                                "Loading events...";
+
+                            getCalendarEvents(response.access_token);
+                        }
+                    });
+
+                    tokenClient.requestAccessToken({
+                        prompt: ""
+                    });
+
+                }, 1000);
+            };
 
             function connectCalendar() {
                 if (!tokenClient) {
