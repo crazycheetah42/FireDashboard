@@ -94,7 +94,10 @@
             </div>
             <div class="panel">
                 <h2>Calendar</h2>
-                <p>Coming soon</p>
+                <button onclick="connectCalendar()">Connect Google Calendar</button>
+                <div id="calendar-events">
+                    Not connected
+                </div>
             </div>
             <div class="panel">
                 <h2>Discord</h2>
@@ -225,6 +228,86 @@
             setInterval(updateClock, 1000);
             loadWeather();
             setInterval(loadWeather, 30 * 60 * 1000);
+        </script>
+        <script src="https://accounts.google.com/gsi/client"></script>
+        <script>
+            var tokenClient;
+
+            function connectCalendar() {
+                if (!tokenClient) {
+                    tokenClient = google.accounts.oauth2.initTokenClient({
+                        client_id: "439850512639-apkqafjrv4tna2amnplcrka3b555s5n2.apps.googleusercontent.com",
+                        scope: "https://www.googleapis.com/auth/calendar.events.readonly",
+                        callback: function (response) {
+                            if (response.error) {
+                                document.getElementById("calendar-events").textContent =
+                                    "Authorization failed. Please try again.";
+                                return;
+                            }
+
+                            getCalendarEvents(response.access_token);
+                        }
+                    });
+                }
+
+                tokenClient.requestAccessToken();
+            }
+
+            function getCalendarEvents(accessToken) {
+                var url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
+                    + "?maxResults=5"
+                    + "&orderBy=startTime"
+                    + "&singleEvents=true"
+                    + "&timeMin=" + encodeURIComponent(new Date().toISOString());
+
+                var request = new XMLHttpRequest();
+                request.open("GET", url, true);
+                request.setRequestHeader("Authorization", "Bearer " + accessToken);
+
+                request.onload = function () {
+                    var container = document.getElementById("calendar-events");
+
+                    if (request.status !== 200) {
+                        container.textContent = "Couldn't load calendar events.";
+                        return;
+                    }
+
+                    var data = JSON.parse(request.responseText);
+                    container.innerHTML = "";
+
+                    if (!data.items || data.items.length === 0) {
+                        container.textContent = "No upcoming events.";
+                        return;
+                    }
+
+                    for (var i = 0; i < data.items.length; i++) {
+                        var event = data.items[i];
+                        var start = event.start.dateTime || event.start.date;
+                        var date = new Date(start);
+
+                        var item = document.createElement("div");
+                        item.style.margin = "12px 0";
+
+                        var title = document.createElement("strong");
+                        title.textContent = event.summary || "Untitled event";
+
+                        var time = document.createElement("div");
+                        time.textContent = date.toLocaleString();
+
+                        item.appendChild(title);
+                        item.appendChild(time);
+                        container.appendChild(item);
+                    }
+                };
+
+                request.onerror = function () {
+                    document.getElementById("calendar-events").textContent =
+                        "Network error loading calendar.";
+                };
+
+                request.send();
+            }
+
         </script>
     </body>
 </html>
