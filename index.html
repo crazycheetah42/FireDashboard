@@ -262,6 +262,9 @@
                         client_id: "439850512639-apkqafjrv4tna2amnplcrka3b555s5n2.apps.googleusercontent.com",
                         scope: "https://www.googleapis.com/auth/calendar.events.readonly",
                         callback: function (response) {
+                            getCalendarEvents(response.access_token);
+                            console.log("Getting calendar events...");
+                            console.log("Google callback fired:", response);
                             if (response.error) {
                                 document.getElementById("calendar-events").textContent =
                                     "Authorization failed. Please try again.";
