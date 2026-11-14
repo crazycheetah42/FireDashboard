@@ -75,28 +75,35 @@
                 margin-top: 12px;
                 font-size: 15px;
             }
+            /* Compact calendar */
             #calendar-events {
-                margin-top: 18px;
+                margin-top: 12px;
+                max-height: 430px;
+                overflow-y: auto;
             }
-                        /* Compact calendar event cards */
+
             .calendar-event {
-                padding: 7px 10px;
-                margin-bottom: 5px;
+                box-sizing: border-box;
+                padding: 5px 9px !important;
+                margin: 0 0 5px 0 !important;
+                min-height: 0 !important;
+                border-radius: 8px;
             }
 
             .calendar-event strong {
                 display: block;
-                font-size: 14px;
-                line-height: 1.2;
+                font-size: 13px !important;
+                line-height: 16px !important;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
 
             .event-time {
-                font-size: 11px;
-                margin-top: 3px;
-                line-height: 1.2;
+                font-size: 10px !important;
+                line-height: 13px !important;
+                margin-top: 2px !important;
+                white-space: nowrap;
             }
         </style>
     </head>
