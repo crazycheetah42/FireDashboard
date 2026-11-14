@@ -28,7 +28,7 @@
             .panel {
                 background: #181818;
                 box-sizing: border-box;
-                flex: 1 1 280px;
+                flex: 1 1 0;
                 margin: 8px;
                 padding: 24px;
                 min-height: 140px;
@@ -113,24 +113,17 @@
             <div id="clock">00:00:00</div>
             <div id="date">Loading date...</div>
         </div>
-
         <div class="dashboard">
             <div class="panel">
                 <h2>Weather · Middletown, NJ</h2>
                 <div id="weather">Loading weather...</div>
             </div>
-
             <div class="panel">
                 <h2>Calendar</h2>
                 <button id="connect-calendar" onclick="connectCalendar()">Connect Google Calendar</button>
                 <div id="calendar-events">
                     Not connected
                 </div>
-            </div>
-
-            <div class="panel">
-                <h2>Discord</h2>
-                <p>Coming soon</p>
             </div>
         </div>
 
