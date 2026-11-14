@@ -79,6 +79,29 @@
                 margin-top: 12px;
                 font-size: 15px;
             }
+            #calendar-events {
+                margin-top: 18px;
+            }
+
+            .calendar-event {
+                background: #222;
+                border-left: 3px solid #C49A6C;
+                border-radius: 8px;
+                padding: 12px 14px;
+                margin-bottom: 10px;
+            }
+
+            .calendar-event strong {
+                display: block;
+                color: white;
+                font-size: 15px;
+                margin-bottom: 5px;
+            }
+
+            .calendar-event .event-time {
+                color: #aaa;
+                font-size: 12px;
+            }
         </style>
     </head>
     <body>
@@ -94,7 +117,7 @@
             </div>
             <div class="panel">
                 <h2>Calendar</h2>
-                <button onclick="connectCalendar()">Connect Google Calendar</button>
+                <button id="connect-calendar" onclick="connectCalendar()">Connect Google Calendar</button>
                 <div id="calendar-events">
                     Not connected
                 </div>
@@ -245,6 +268,7 @@
                                 return;
                             }
 
+                            document.getElementById("connect-calendar").style.display = "none";
                             getCalendarEvents(response.access_token);
                         }
                     });
@@ -286,19 +310,34 @@
                         var date = new Date(start);
 
                         var item = document.createElement("div");
-                        item.style.margin = "12px 0";
+                        item.className = "calendar-event";
 
                         var title = document.createElement("strong");
                         title.textContent = event.summary || "Untitled event";
 
                         var time = document.createElement("div");
-                        time.textContent = date.toLocaleString();
+                        time.className = "event-time";
+
+                        if (event.start.dateTime) {
+                            time.textContent = date.toLocaleString([], {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit"
+                            });
+                        } else {
+                            time.textContent = date.toLocaleDateString([], {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric"
+                            });
+                        }
 
                         item.appendChild(title);
                         item.appendChild(time);
                         container.appendChild(item);
                     }
-                };
 
                 request.onerror = function () {
                     document.getElementById("calendar-events").textContent =
