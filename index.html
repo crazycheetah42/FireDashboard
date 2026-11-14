@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Fire HD Dashboard</title>
+        <style>
+            body {
+                background: #000000;
+                color: white;
+                font-family: Helvetica, sans-serif;
+                text-align: center;
+                padding: 20px;
+            }
+            #clock {
+                font-size: 76px;
+                font-weight: bold;
+                margin-top: 30px;
+                letter-spacing: 3px;
+            }
+            #date {
+                color: #999999;
+                font-size: 18px;
+                margin-top: 10px;
+            }
+            .panel {
+                background: #181818;
+                padding: 20px;
+                border-radius: 12px;
+                text-align: left;
+            }
+            .dashboard {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                margin-top: 30px;
+            }
+            .panel h2 {
+                color: #C49A6C;
+                margin-top: 0;
+            }
+            .clock-container {
+                text-align: center;
+                margin: 35px 0 45px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="clock-container">
+            <div id="clock">00:00:00</div>
+            <div id="date">Loading date...</div>
+        </div>
+
+        <div class="dashboard">
+            <div class="panel">
+                <h2>Weather</h2>
+                <p>Coming soon</p>
+            </div>
+            <div class="panel">
+                <h2>Calendar</h2>
+                <p>Coming soon</p>
+            </div>
+            <div class="panel">
+                <h2>Discord</h2>
+                <p>Coming soon</p>
+            </div>
+        </div>
+
+        <script>
+            function updateClock() {
+                const now = new Date();
+                document.getElementById("clock").textContent = now.toLocaleTimeString();
+                document.getElementById("date").textContent = 
+                                                                now.toLocaleDateString([], {
+                                                                    weekday: "long",
+                                                                    month: "long",
+                                                                    day: "numeric"
+                                                                });
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        </script>
+    </body>
+</html>
