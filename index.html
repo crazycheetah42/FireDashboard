@@ -27,19 +27,27 @@
             }
             .panel {
                 background: #181818;
-                padding: 20px;
-                border-radius: 12px;
+                box-sizing: border-box;
+                flex: 1 1 280px;
+                margin: 8px;
+                padding: 24px;
+                min-height: 140px;
+                border-radius: 14px;
                 text-align: left;
             }
             .dashboard {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-                margin-top: 30px;
+                display: flex;
+                flex-wrap: wrap;
+                margin: 20px -8px;
             }
             .panel h2 {
                 color: #C49A6C;
                 margin-top: 0;
+                margin-bottom: 16px;
+            }
+            .panel p {
+                color: #AAAAAA;
+                font-size: 16px;
             }
             .clock-container {
                 text-align: center;
