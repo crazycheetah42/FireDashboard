@@ -248,13 +248,14 @@
                     "Weather unavailable. Check your internet connection.";
             }
             updateClock();
-            setInterval(updateClock, 1000);
+            setInterval(updateClock, 100);
             loadWeather();
             setInterval(loadWeather, 30 * 60 * 1000);
         </script>
         <script src="https://accounts.google.com/gsi/client"></script>
         <script> 
             var tokenClient;
+            var calendarAccessToken = null;
             window.onload = function () {
                 setTimeout(function () {
                     tokenClient = google.accounts.oauth2.initTokenClient({
@@ -297,7 +298,8 @@
 
                             document.getElementById("calendar-events").textContent =
                                 "Loading events...";
-
+                            
+                            calendarAccessToken = response.access_token;
                             getCalendarEvents(response.access_token);
                         }
                     });
@@ -390,6 +392,11 @@
 
                 request.send();
             }
+            setInterval(function () {
+                if (calendarAccessToken) {
+                    getCalendarEvents(calendarAccessToken);
+                }
+            }, 5 * 60 * 1000);
         </script>
     </body>
 </html>
