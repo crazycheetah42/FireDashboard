@@ -58,22 +58,18 @@
                 font-size: 18px;
                 margin: 0 0 18px;
             }
-
             .weather-main {
                 display: flex;
                 align-items: center;
                 gap: 16px;
             }
-
             .weather-icon {
                 font-size: 42px;
             }
-
             .weather-temp {
                 font-size: 38px;
                 font-weight: bold;
             }
-
             .weather-feels {
                 color: #999999;
                 margin-top: 12px;
@@ -82,7 +78,6 @@
             #calendar-events {
                 margin-top: 18px;
             }
-
             .calendar-event {
                 background: #222;
                 border-left: 3px solid #C49A6C;
@@ -90,20 +85,19 @@
                 padding: 12px 14px;
                 margin-bottom: 10px;
             }
-
             .calendar-event strong {
                 display: block;
                 color: white;
                 font-size: 15px;
                 margin-bottom: 5px;
             }
-
             .calendar-event .event-time {
                 color: #aaa;
                 font-size: 12px;
             }
         </style>
     </head>
+
     <body>
         <div class="clock-container">
             <div id="clock">00:00:00</div>
@@ -115,6 +109,7 @@
                 <h2>Weather · Middletown, NJ</h2>
                 <div id="weather">Loading weather...</div>
             </div>
+
             <div class="panel">
                 <h2>Calendar</h2>
                 <button id="connect-calendar" onclick="connectCalendar()">Connect Google Calendar</button>
@@ -122,27 +117,29 @@
                     Not connected
                 </div>
             </div>
+
             <div class="panel">
                 <h2>Discord</h2>
                 <p>Coming soon</p>
             </div>
         </div>
 
+        <!-- CLOCK AND WEATHER -->
         <script>
             function updateClock() {
                 const now = new Date();
                 document.getElementById("clock").textContent = now.toLocaleTimeString();
-                document.getElementById("date").textContent = 
-                                                                now.toLocaleDateString([], {
-                                                                    weekday: "long",
-                                                                    month: "long",
-                                                                    day: "numeric"
-                                                                });
+                document.getElementById("date").textContent =
+                    now.toLocaleDateString([], {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric"
+                    });
             }
+
             function loadWeather() {
                 var request = new XMLHttpRequest();
 
-                // Find Middletown, New Jersey
                 request.open(
                     "GET",
                     "https://geocoding-api.open-meteo.com/v1/search?name=Middletown&count=10&countryCode=US&language=en&format=json",
@@ -177,7 +174,6 @@
                 request.send();
             }
 
-            
             function getForecast(latitude, longitude) {
                 var url = "https://api.open-meteo.com/v1/forecast"
                     + "?latitude=" + latitude
@@ -199,7 +195,6 @@
 
                     var data = JSON.parse(request.responseText);
                     var current = data.current;
-
                     var icon = getWeatherIcon(current.weather_code);
 
                     document.getElementById("weather").innerHTML =
@@ -228,6 +223,7 @@
                 if (code <= 86) return "🌨️";
                 return "⛈️";
             }
+
             function getWeatherDescription(code) {
                 if (code === 0) return "Clear sky";
                 if (code === 1) return "Mainly clear";
@@ -247,154 +243,187 @@
                 document.getElementById("weather").textContent =
                     "Weather unavailable. Check your internet connection.";
             }
+
             updateClock();
-            setInterval(updateClock, 100);
+            setInterval(updateClock, 1000);
             loadWeather();
             setInterval(loadWeather, 30 * 60 * 1000);
         </script>
-        <script src="https://accounts.google.com/gsi/client"></script>
-        <script> 
-            var tokenClient;
-            var calendarAccessToken = null;
-            window.onload = function () {
-                setTimeout(function () {
-                    tokenClient = google.accounts.oauth2.initTokenClient({
-                        client_id: "439850512639-apkqafjrv4tna2amnplcrka3b555s5n2.apps.googleusercontent.com",
-                        scope: "https://www.googleapis.com/auth/calendar.events.readonly",
 
-                        callback: function (response) {
-                            if (response.error || !response.access_token) {
-                                document.getElementById("calendar-events").textContent =
-                                    "Please connect your calendar.";
-                                return;
-                            }
-
-                            document.getElementById("calendar-events").textContent =
-                                "Loading events...";
-
-                            getCalendarEvents(response.access_token);
-                        }
-                    });
-
-                    tokenClient.requestAccessToken({
-                        prompt: ""
-                    });
-
-                }, 1000);
-            };
+        <!-- GOOGLE CALENDAR THROUGH CLOUDFLARE WORKER -->
+        <script>
+            var WORKER_URL = "https://quiet-feather-ceb0.aryamansriram2.workers.dev";
+            var calendarSession = null;
 
             function connectCalendar() {
-                if (!tokenClient) {
-                    tokenClient = google.accounts.oauth2.initTokenClient({
-                        client_id: "439850512639-apkqafjrv4tna2amnplcrka3b555s5n2.apps.googleusercontent.com",
-                        scope: "https://www.googleapis.com/auth/calendar.events.readonly",
-
-                        callback: function (response) {
-                            if (response.error || !response.access_token) {
-                                document.getElementById("calendar-events").textContent =
-                                    "Authorization failed. Please try again.";
-                                return;
-                            }
-
-                            document.getElementById("calendar-events").textContent =
-                                "Loading events...";
-                            
-                            calendarAccessToken = response.access_token;
-                            getCalendarEvents(response.access_token);
-                        }
-                    });
-                }
-
-                tokenClient.requestAccessToken();
+                window.location.href = WORKER_URL + "/auth/start";
             }
 
-            function getCalendarEvents(accessToken) {
-                var url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
-                    + "?maxResults=5"
-                    + "&orderBy=startTime"
-                    + "&singleEvents=true"
-                    + "&timeMin=" + encodeURIComponent(new Date().toISOString());
+            function showConnectButton(message) {
+                var container = document.getElementById("calendar-events");
+                container.textContent = message + " ";
+
+                var button = document.getElementById("connect-calendar");
+                button.style.display = "inline-block";
+                button.textContent = "Connect Google Calendar";
+            }
+
+            function getCalendarSession() {
+                var hash = window.location.hash || "";
+                var match = hash.match(/(?:^#|&)session=([^&]+)/);
+
+                if (match && match[1]) {
+                    try {
+                        calendarSession = decodeURIComponent(match[1]);
+                        localStorage.setItem("fireDashboardSession", calendarSession);
+
+                        if (window.history && window.history.replaceState) {
+                            window.history.replaceState(
+                                null,
+                                document.title,
+                                window.location.pathname + window.location.search
+                            );
+                        } else {
+                            window.location.hash = "";
+                        }
+                    } catch (error) {
+                        showConnectButton("Couldn't save your sign-in.");
+                        return null;
+                    }
+                } else {
+                    try {
+                        calendarSession = localStorage.getItem("fireDashboardSession");
+                    } catch (error) {
+                        calendarSession = null;
+                    }
+                }
+
+                return calendarSession;
+            }
+
+            function loadCalendarEvents() {
+                var container = document.getElementById("calendar-events");
+
+                if (!calendarSession) {
+                    showConnectButton("Connect your Google Calendar to see events.");
+                    return;
+                }
+
+                container.textContent = "Loading events...";
 
                 var request = new XMLHttpRequest();
-                request.open("GET", url, true);
-                request.setRequestHeader("Authorization", "Bearer " + accessToken);
+                request.open("GET", WORKER_URL + "/api/events", true);
+                request.setRequestHeader("Authorization", "Bearer " + calendarSession);
 
                 request.onload = function () {
-                    var container = document.getElementById("calendar-events");
+                    if (request.status === 401 || request.status === 403) {
+                        try {
+                            localStorage.removeItem("fireDashboardSession");
+                        } catch (error) {}
+
+                        calendarSession = null;
+                        showConnectButton("Your sign-in has expired. Please reconnect.");
+                        return;
+                    }
 
                     if (request.status !== 200) {
-                        container.textContent =
-                            "Couldn't load events. Error: " + request.status;
+                        container.textContent = "Couldn't load events. Error: " + request.status;
                         return;
                     }
 
-                    var data = JSON.parse(request.responseText);
-                    container.innerHTML = "";
+                    var data;
 
-                    document.getElementById("connect-calendar").style.display = "none";
-
-                    if (!data.items || data.items.length === 0) {
-                        container.textContent = "No upcoming events.";
+                    try {
+                        data = JSON.parse(request.responseText);
+                    } catch (error) {
+                        container.textContent = "The calendar server returned an invalid response.";
                         return;
                     }
 
-                    for (var i = 0; i < data.items.length; i++) {
-                        var event = data.items[i];
-                        var start = event.start.dateTime || event.start.date;
-                        var date;
-
-                        if (event.start.dateTime) {
-                            date = new Date(start);
-                        } else {
-                            var parts = start.split("-");
-                            date = new Date(
-                                Number(parts[0]),
-                                Number(parts[1]) - 1,
-                                Number(parts[2])
-                            );
-                        }
-
-                        var item = document.createElement("div");
-                        item.className = "calendar-event";
-
-                        var title = document.createElement("strong");
-                        title.textContent = event.summary || "Untitled event";
-
-                        var time = document.createElement("div");
-                        time.className = "event-time";
-
-                        if (event.start.dateTime) {
-                            time.textContent = date.toLocaleString([], {
-                                weekday: "short",
-                                month: "short",
-                                day: "numeric",
-                                hour: "numeric",
-                                minute: "2-digit"
-                            });
-                        } else {
-                            time.textContent = date.toLocaleDateString([], {
-                                weekday: "short",
-                                month: "short",
-                                day: "numeric"
-                            }) + " · All day";
-                        }
-
-                        item.appendChild(title);
-                        item.appendChild(time);
-                        container.appendChild(item);
-                    }
+                    var events = data.items || data.events || (Array.isArray(data) ? data : []);
+                    renderCalendarEvents(events);
                 };
 
                 request.onerror = function () {
-                    document.getElementById("calendar-events").textContent =
-                        "Network error loading calendar.";
+                    container.textContent = "Network error loading calendar.";
                 };
 
                 request.send();
             }
+
+            function renderCalendarEvents(events) {
+                var container = document.getElementById("calendar-events");
+                container.innerHTML = "";
+
+                document.getElementById("connect-calendar").style.display = "none";
+
+                if (!events || events.length === 0) {
+                    container.textContent = "No upcoming events.";
+                    return;
+                }
+
+                for (var i = 0; i < events.length; i++) {
+                    var event = events[i];
+                    var start = event.start && (event.start.dateTime || event.start.date);
+
+                    if (!start) {
+                        continue;
+                    }
+
+                    var date;
+
+                    if (event.start.dateTime) {
+                        date = new Date(start);
+                    } else {
+                        var parts = start.split("-");
+                        date = new Date(
+                            Number(parts[0]),
+                            Number(parts[1]) - 1,
+                            Number(parts[2])
+                        );
+                    }
+
+                    var item = document.createElement("div");
+                    item.className = "calendar-event";
+
+                    var title = document.createElement("strong");
+                    title.textContent = event.summary || "Untitled event";
+
+                    var time = document.createElement("div");
+                    time.className = "event-time";
+
+                    if (event.start.dateTime) {
+                        time.textContent = date.toLocaleString([], {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit"
+                        });
+                    } else {
+                        time.textContent = date.toLocaleDateString([], {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric"
+                        }) + " · All day";
+                    }
+
+                    item.appendChild(title);
+                    item.appendChild(time);
+                    container.appendChild(item);
+                }
+
+                if (!container.firstChild) {
+                    container.textContent = "No upcoming events.";
+                }
+            }
+
+            getCalendarSession();
+            loadCalendarEvents();
+
             setInterval(function () {
-                if (calendarAccessToken) {
-                    getCalendarEvents(calendarAccessToken);
+                if (calendarSession) {
+                    loadCalendarEvents();
                 }
             }, 5 * 60 * 1000);
         </script>
