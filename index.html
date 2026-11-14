@@ -53,6 +53,32 @@
                 text-align: center;
                 margin: 35px 0 45px;
             }
+            .weather-heading {
+                color: #C49A6C;
+                font-size: 18px;
+                margin: 0 0 18px;
+            }
+
+            .weather-main {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .weather-icon {
+                font-size: 42px;
+            }
+
+            .weather-temp {
+                font-size: 38px;
+                font-weight: bold;
+            }
+
+            .weather-feels {
+                color: #999999;
+                margin-top: 12px;
+                font-size: 15px;
+            }
         </style>
     </head>
     <body>
@@ -63,8 +89,8 @@
 
         <div class="dashboard">
             <div class="panel">
-                <h2>Weather</h2>
-                <p>Coming soon</p>
+                <h2>Weather · Middletown, NJ</h2>
+                <div id="weather">Loading weather...</div>
             </div>
             <div class="panel">
                 <h2>Calendar</h2>
@@ -87,8 +113,118 @@
                                                                     day: "numeric"
                                                                 });
             }
+            function loadWeather() {
+                var request = new XMLHttpRequest();
+
+                // Find Middletown, New Jersey
+                request.open(
+                    "GET",
+                    "https://geocoding-api.open-meteo.com/v1/search?name=Middletown&count=10&countryCode=US&language=en&format=json",
+                    true
+                );
+
+                request.onload = function () {
+                    if (request.status !== 200) {
+                        showWeatherError();
+                        return;
+                    }
+
+                    var locations = JSON.parse(request.responseText).results || [];
+                    var location = null;
+
+                    for (var i = 0; i < locations.length; i++) {
+                        if (locations[i].admin1 === "New Jersey") {
+                            location = locations[i];
+                            break;
+                        }
+                    }
+
+                    if (!location) {
+                        showWeatherError();
+                        return;
+                    }
+
+                    getForecast(location.latitude, location.longitude);
+                };
+
+                request.onerror = showWeatherError;
+                request.send();
+            }
+
+            
+            function getForecast(latitude, longitude) {
+                var url = "https://api.open-meteo.com/v1/forecast"
+                    + "?latitude=" + latitude
+                    + "&longitude=" + longitude
+                    + "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m"
+                    + "&daily=temperature_2m_max,temperature_2m_min"
+                    + "&temperature_unit=fahrenheit"
+                    + "&wind_speed_unit=mph"
+                    + "&timezone=America%2FNew_York";
+
+                var request = new XMLHttpRequest();
+                request.open("GET", url, true);
+
+                request.onload = function () {
+                    if (request.status !== 200) {
+                        showWeatherError();
+                        return;
+                    }
+
+                    var data = JSON.parse(request.responseText);
+                    var current = data.current;
+
+                    var icon = getWeatherIcon(current.weather_code);
+
+                    document.getElementById("weather").innerHTML =
+                        "<div class='weather-main'>"
+                        + "<span class='weather-icon'>" + icon + "</span>"
+                        + "<span class='weather-temp'>"
+                        + Math.round(current.temperature_2m) + "°F</span>"
+                        + "</div>"
+                        + "<div class='weather-feels'>Feels like "
+                        + Math.round(current.apparent_temperature) + "°F</div>";
+                };
+
+                request.onerror = showWeatherError;
+                request.send();
+            }
+
+            function getWeatherIcon(code) {
+                if (code === 0) return "☀️";
+                if (code <= 2) return "⛅";
+                if (code === 3) return "☁️";
+                if (code <= 48) return "🌫️";
+                if (code <= 57) return "🌦️";
+                if (code <= 67) return "🌧️";
+                if (code <= 77) return "❄️";
+                if (code <= 82) return "🌧️";
+                if (code <= 86) return "🌨️";
+                return "⛈️";
+            }
+            function getWeatherDescription(code) {
+                if (code === 0) return "Clear sky";
+                if (code === 1) return "Mainly clear";
+                if (code === 2) return "Partly cloudy";
+                if (code === 3) return "Overcast";
+                if (code === 45 || code === 48) return "Foggy";
+                if (code >= 51 && code <= 57) return "Drizzle";
+                if (code >= 61 && code <= 67) return "Rain";
+                if (code >= 71 && code <= 77) return "Snow";
+                if (code >= 80 && code <= 82) return "Rain showers";
+                if (code >= 85 && code <= 86) return "Snow showers";
+                if (code >= 95) return "Thunderstorms";
+                return "Conditions unavailable";
+            }
+
+            function showWeatherError() {
+                document.getElementById("weather").textContent =
+                    "Weather unavailable. Check your internet connection.";
+            }
             updateClock();
             setInterval(updateClock, 1000);
+            loadWeather();
+            setInterval(loadWeather, 30 * 60 * 1000);
         </script>
     </body>
 </html>
