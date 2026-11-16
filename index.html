@@ -121,6 +121,61 @@
                 margin-top: 2px !important;
                 white-space: nowrap;
             }
+            .month-calendar {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                }
+
+                .month-calendar-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                }
+
+                .month-calendar-header h2 {
+                margin: 0;
+                font-size: 16px;
+                }
+
+                .month-calendar-header button {
+                background: transparent;
+                color: #c9a77c;
+                border: none;
+                font-size: 20px;
+                cursor: pointer;
+                padding: 2px 8px;
+                }
+
+                .calendar-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 5px;
+                text-align: center;
+                }
+
+                .calendar-day-label {
+                color: #888;
+                font-size: 11px;
+                padding-bottom: 4px;
+                }
+
+                .calendar-date {
+                font-size: 12px;
+                padding: 5px 0;
+                border-radius: 6px;
+                color: #ddd;
+                }
+
+                .calendar-date.today {
+                background: #c9a77c;
+                color: #171717;
+                font-weight: bold;
+                }
+
+                .calendar-date.empty {
+                visibility: hidden;
+                }
         </style>
     </head>
 
@@ -139,8 +194,13 @@
                 <div id="weather">Loading weather...</div>
             </div>
 
-            <div class="panel">
-                <h2>Second Panel</h2>
+            <div class="panel month-calendar">
+                <div class="month-calendar-header">
+                    <button id="prev-month">&lt;</button>
+                    <h2 id="month-title"></h2>
+                    <button id="next-month">&gt;</button>
+                </div>
+                <div class="calendar-grid" id="month-grid"></div>
             </div>
 
         </div>
@@ -527,6 +587,79 @@
             }
 
             loadTickTickTasks();
+            setInterval(loadTickTickTasks, 60 * 60 * 1000);
+
+            var calendarDisplayDate = new Date();
+
+            function renderMonthCalendar() {
+                var year = calendarDisplayDate.getFullYear();
+                var month = calendarDisplayDate.getMonth();
+
+                var monthNames = [
+                    "January", "February", "March", "April",
+                    "May", "June", "July", "August",
+                    "September", "October", "November", "December"
+                ];
+
+                var firstDay = new Date(year, month, 1).getDay();
+                var daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                var today = new Date();
+                var todayYear = today.getFullYear();
+                var todayMonth = today.getMonth();
+                var todayDate = today.getDate();
+
+                document.getElementById("month-title").textContent =
+                    monthNames[month] + " " + year;
+
+                var grid = document.getElementById("month-grid");
+                grid.innerHTML = "";
+
+                var dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+                for (var i = 0; i < 7; i++) {
+                    var label = document.createElement("div");
+                    label.className = "calendar-day-label";
+                    label.textContent = dayNames[i];
+                    grid.appendChild(label);
+                }
+
+                for (var j = 0; j < firstDay; j++) {
+                    var empty = document.createElement("div");
+                    empty.className = "calendar-date empty";
+                    empty.textContent = "0";
+                    grid.appendChild(empty);
+                }
+
+                for (var day = 1; day <= daysInMonth; day++) {
+                    var dateElement = document.createElement("div");
+                    dateElement.className = "calendar-date";
+                    dateElement.textContent = day;
+
+                    if (
+                        year === todayYear &&
+                        month === todayMonth &&
+                        day === todayDate
+                    ) {
+                        dateElement.className += " today";
+                    }
+
+                    grid.appendChild(dateElement);
+                }
+            }
+
+            document.getElementById("prev-month").onclick = function() {
+                calendarDisplayDate.setMonth(calendarDisplayDate.getMonth() - 1);
+                renderMonthCalendar();
+            };
+
+            document.getElementById("next-month").onclick = function() {
+                calendarDisplayDate.setMonth(calendarDisplayDate.getMonth() + 1);
+                renderMonthCalendar();
+            };
+
+            renderMonthCalendar();
+            setInterval(renderMonthCalendar, 24 * 60 * 60* 1000);
         </script>
     </body>
 </html>
