@@ -37,13 +37,26 @@
             }
             .dashboard {
                 display: flex;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
+                align-items: stretch;
                 margin: 20px -8px;
+            }
+
+            .dashboard-left {
+                display: flex;
+                flex-direction: column;
+                flex: 1 1 0;
+                min-width: 0;
+            }
+
+            .dashboard > .panel {
+                flex: 1 1 0;
+                min-width: 0;
             }
             .panel h2 {
                 color: #C49A6C;
                 margin-top: 0;
-                margin-bottom: 16px;
+                margin-bottom: 8px;
             }
             .panel p {
                 color: #AAAAAA;
@@ -54,26 +67,29 @@
                 margin: 35px 0 45px;
             }
             .weather-heading {
-                color: #C49A6C;
-                font-size: 18px;
-                margin: 0 0 18px;
+                margin-bottom: 8px;
             }
+
             .weather-main {
                 display: flex;
+                flex-direction: row;
                 align-items: center;
-                gap: 16px;
+                gap: 12px;
             }
+
             .weather-icon {
-                font-size: 42px;
+                font-size: 34px;
+                line-height: 1;
             }
+
             .weather-temp {
-                font-size: 38px;
-                font-weight: bold;
+                font-size: 30px;
+                line-height: 1.1;
             }
+
             .weather-feels {
-                color: #999999;
-                margin-top: 12px;
-                font-size: 15px;
+                font-size: 13px;
+                margin-top: 3px;
             }
             /* Compact calendar */
             #calendar-events {
@@ -113,19 +129,38 @@
             <div id="clock">00:00:00</div>
             <div id="date">Loading date...</div>
         </div>
-        <div class="dashboard">
+            <div class="dashboard">
+
+        <!-- LEFT COLUMN -->
+        <div class="dashboard-left">
+
             <div class="panel">
-                <h2>Weather · Middletown, NJ</h2>
+                <h2>Weather</h2>
                 <div id="weather">Loading weather...</div>
             </div>
+
             <div class="panel">
-                <h2>Calendar</h2>
-                <button id="connect-calendar" onclick="connectCalendar()">Connect Google Calendar</button>
-                <div id="calendar-events">
-                    Not connected
-                </div>
+                <h2>Second Panel</h2>
+            </div>
+
+        </div>
+
+        <!-- CALENDAR -->
+        <div class="panel">
+            <h2>Calendar</h2>
+            <button id="connect-calendar" onclick="connectCalendar()">Connect Google Calendar</button>
+            <div id="calendar-events">
+                Not connected
             </div>
         </div>
+
+        <!-- TICKTICK -->
+        <div class="panel">
+            <h2>TickTick</h2>
+            <div id="ticktick-tasks">Loading TickTick tasks...</div>
+        </div>
+
+    </div>
 
         <!-- CLOCK AND WEATHER -->
         <script>
@@ -203,11 +238,14 @@
                     document.getElementById("weather").innerHTML =
                         "<div class='weather-main'>"
                         + "<span class='weather-icon'>" + icon + "</span>"
-                        + "<span class='weather-temp'>"
-                        + Math.round(current.temperature_2m) + "°F</span>"
+                        + "<div>"
+                        + "<div class='weather-temp'>"
+                        + Math.round(current.temperature_2m) + "°F</div>"
+                        + "<div class='weather-feels'>"
+                        + getWeatherDescription(current.weather_code)
                         + "</div>"
-                        + "<div class='weather-feels'>Feels like "
-                        + Math.round(current.apparent_temperature) + "°F</div>";
+                        + "</div>"
+                        + "</div>";
                 };
 
                 request.onerror = showWeatherError;
@@ -429,6 +467,66 @@
                     loadCalendarEvents();
                 }
             }, 5 * 60 * 1000);
+            function loadTickTickTasks() {
+                var container = document.getElementById("ticktick-tasks");
+
+                var request = new XMLHttpRequest();
+                request.open(
+                    "GET",
+                    WORKER_URL + "/api/ticktick/tasks",
+                    true
+                );
+
+                request.setRequestHeader(
+                    "Authorization",
+                    "Bearer " + calendarSession
+                );
+
+                request.onload = function() {
+                    if (request.status !== 200) {
+                        container.textContent = "Couldn't load TickTick tasks.";
+                        return;
+                    }
+
+                    var data = JSON.parse(request.responseText);
+                    container.innerHTML = "";
+
+                    var sections = [
+                        { title: "Today", tasks: data.today || [] },
+                        { title: "Overdue", tasks: data.overdue || [] }
+                    ];
+
+                    for (var i = 0; i < sections.length; i++) {
+                        var heading = document.createElement("h3");
+                        heading.textContent = sections[i].title;
+                        container.appendChild(heading);
+
+                        if (sections[i].tasks.length === 0) {
+                            var empty = document.createElement("p");
+                            empty.textContent = "No tasks.";
+                            container.appendChild(empty);
+                        }
+
+                        for (var j = 0; j < sections[i].tasks.length; j++) {
+                            var task = sections[i].tasks[j];
+
+                            var item = document.createElement("div");
+                            item.className = "ticktick-task";
+                            item.textContent = task.title;
+
+                            container.appendChild(item);
+                        }
+                    }
+                };
+
+                request.onerror = function() {
+                    container.textContent = "Network error loading TickTick.";
+                };
+
+                request.send();
+            }
+
+            loadTickTickTasks();
         </script>
     </body>
 </html>
